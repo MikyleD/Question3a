@@ -8,13 +8,27 @@ trigger:
     exclude:
       - '*'
 
+pool:
+  vmImage: 'windows-latest'
+
 jobs:
 - job: Build
-  pool:
-    vmImage: 'windows-latest'
+  displayName: 'Build Job'
   steps:
-  - template: 'templates/dotnet-core.yml@templates' # Use a template file for .NET Core
-    parameters:
-      solution: '**/*.sln'
-      buildPlatform: 'windows'
-      buildConfiguration: 'Release'
+  - task: UseDotNet@2
+    displayName: 'Use .NET Core SDK'
+    inputs:
+      version: '3.x'
+      includePreviewVersions: true
+
+  - script: dotnet restore
+    displayName: 'Restore NuGet Packages'
+
+  - script: dotnet build --configuration Release
+    displayName: 'Build Project'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifacts'
+    inputs:
+      pathtoPublish: '$(Build.SourcesDirectory)/bin/Release/netcoreapp3.1'
+      artifactName: 'drop'
